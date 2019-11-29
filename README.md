@@ -34,6 +34,9 @@
 - App.listen vs server.listen (Express)
   https://stackoverflow.com/questions/17696801/express-js-app-listen-vs-server-listen
 
+- WebSockets UI
+  https://blog.logrocket.com/websockets-tutorial-how-to-go-real-time-with-node-and-react-8e4693fbf843/
+
 
     ## Considerations
     WebSocket vs. Socket.IO
