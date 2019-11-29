@@ -2,6 +2,7 @@ import dotenv from "dotenv";
 import express from "express";
 import morgan from "morgan";
 import winston from "winston";
+import * as WebSocket from "ws";
 
 const app = express();
 const logger = winston.createLogger({
@@ -22,6 +23,16 @@ app.get("/", (req, res) => {
 });
 
 // start the Express server
-app.listen(port, () => {
+const server = app.listen(port, () => {
   logger.info(`server started at http://localhost:${port}`);
+});
+
+const wss = new WebSocket.Server({ server });
+
+wss.on("connection", (ws: WebSocket) => {
+  ws.on("message", (message: string) => {
+    logger.info("received", message);
+    ws.send("Hello, you sent -> " + message);
+  });
+  ws.send("Hi there, I am a WebSocket server");
 });

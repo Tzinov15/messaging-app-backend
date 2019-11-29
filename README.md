@@ -12,6 +12,8 @@
     "start": "node ."
 ```
 
+- The difference between `app.listen()` and `server.listen()` when building an Express app
+
 ## Resources Used
 
 - Express Typescript start example
@@ -25,3 +27,13 @@
 
 - Ultimate Guide to NodeJS logging
   https://www.loggly.com/ultimate-guide/node-logging-basics/
+
+- WebSocket + Express + TypeScript
+  https://medium.com/factory-mind/websocket-node-js-express-step-by-step-using-typescript-725114ad5fe4
+
+- App.listen vs server.listen (Express)
+  https://stackoverflow.com/questions/17696801/express-js-app-listen-vs-server-listen
+
+
+    ## Considerations
+    WebSocket vs. Socket.IO
