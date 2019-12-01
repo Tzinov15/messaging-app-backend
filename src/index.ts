@@ -2,20 +2,20 @@ import dotenv from "dotenv";
 import express from "express";
 import moment from "moment";
 import morgan from "morgan";
+import { toUnicode } from "punycode";
 import winston from "winston";
 import * as WebSocket from "ws";
-import { toUnicode } from "punycode";
 
 export interface IMessageData {
   username: string;
   date: string;
   msg: string;
-  avatarURL: string;
+  avatarOptions: string;
 }
 
 export interface ICustomWebSocket extends WebSocket {
   url: string;
-  avatar: string;
+  avatarOptions: string;
   username: string;
 }
 
@@ -49,8 +49,8 @@ const wss = new WebSocket.Server({ server });
 
 // TODO: Write suites of unit tests for the below 3 functions to make sure they handle all possible edge cases of inputs
 const getUsernameFromSocketURL = (url: string) =>
-  url.split("username=")[1].split("&avatarURL=")[0];
-const getAvatarFromSocketURL = (url: string) => url.split("avatarURL=")[1];
+  url.split("username=")[1].split("&avatarOptions=")[0];
+const getAvatarFromSocketURL = (url: string) => url.split("avatarOptions=")[1];
 const reduceSocketsToUsers = (sockets: Set<any>) =>
   Array.from(sockets).reduce((arr, currSocket) => {
     arr.push({
@@ -67,9 +67,9 @@ const broadcastToClientsNewConnectedClientList = (
 ) => {
   logger.info(`The ${getUsernameFromSocketURL(ws.url)} has ${updateType}!`);
   const usersOfAllClients = reduceSocketsToUsers(wss.clients);
-  logger.info(
-    `Currently connected clients: ${JSON.stringify(usersOfAllClients)}`
-  );
+  // logger.info(
+  //   `Currently connected clients: ${JSON.stringify(usersOfAllClients)}`
+  // );
   wss.clients.forEach(client => {
     client.send(
       JSON.stringify({
@@ -80,25 +80,48 @@ const broadcastToClientsNewConnectedClientList = (
   });
 };
 
+const findRecipientSocket = (
+  clients: ICustomWebSocket[],
+  recipient: string
+): ICustomWebSocket => {
+  const recipientSocket = clients.find(client => client.username === recipient);
+  return recipientSocket as ICustomWebSocket;
+};
+
 wss.on("connection", (ws: ICustomWebSocket, req) => {
   ws.url = String(req.url);
-  ws.username = String(getAvatarFromSocketURL(ws.url));
-  ws.avatar = String(getAvatarFromSocketURL(ws.url));
+  ws.username = String(getUsernameFromSocketURL(ws.url));
+  ws.avatarOptions = String(getAvatarFromSocketURL(ws.url));
   broadcastToClientsNewConnectedClientList(wss, ws, "CONNECT");
   ws.on("message", data => {
+    const messageArrivalTime = moment().format("h:mm:ss:SSS a");
     const incomingData = JSON.parse(data.toString());
+    const recipientSocket: ICustomWebSocket = findRecipientSocket(
+      Array.from(wss.clients as Set<ICustomWebSocket>),
+      incomingData.recipient
+    );
+    const decodedAvatarOptionsJSON = JSON.parse(
+      decodeURI(recipientSocket.avatarOptions)
+    );
     const messageData = JSON.stringify({
-      avatarURL: incomingData.avatarURL,
-      date: moment().format("h:mm:ss a"),
+      action: "USER_MESSAGE",
+      author: incomingData.author,
+      avatarOptions: decodedAvatarOptionsJSON,
+      date: messageArrivalTime,
       msg: incomingData.msg,
-      username: incomingData.username
+      recipient: recipientSocket.username
     });
-    ws.send(messageData);
-    wss.clients.forEach(client => {
-      if (client !== ws) {
-        client.send(messageData);
-      }
-    });
+
+    ws.send(
+      JSON.stringify({
+        ...incomingData,
+        action: "USER_MESSAGE",
+        date: messageArrivalTime
+      })
+    );
+
+    console.log("SENDING TO " + recipientSocket);
+    recipientSocket.send(messageData);
   });
 
   ws.on("close", data => {
