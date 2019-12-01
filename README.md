@@ -37,6 +37,9 @@
 - WebSockets UI
   https://blog.logrocket.com/websockets-tutorial-how-to-go-real-time-with-node-and-react-8e4693fbf843/
 
+- Custom WebSocket attributes can be added (thought of this first)
+  https://stackoverflow.com/a/46878342
+
 
     ## Considerations
     WebSocket vs. Socket.IO
