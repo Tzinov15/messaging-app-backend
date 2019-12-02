@@ -71,6 +71,9 @@ const broadcastToClientsNewConnectedClientList = (
   //   `Currently connected clients: ${JSON.stringify(usersOfAllClients)}`
   // );
   wss.clients.forEach(client => {
+    // TODO: Somewhere in here, as part of broadcasting to each client, I would need to wire up the DB call to query message data pertinent to the newly connected userA
+    // TODO: Also, not each client can get the same message here. When a client first connects, that client and that client only neeeds to get ITS message history
+    // All the other clients simply need to be notified that there is a new user. So in this case, in the wss.clients.forEach, we need to send a special action to the new client that joined the team and give them their message history
     client.send(
       JSON.stringify({
         action: `CLIENT_${updateType}`,
@@ -92,6 +95,7 @@ wss.on("connection", (ws: ICustomWebSocket, req) => {
   ws.url = String(req.url);
   ws.username = String(getUsernameFromSocketURL(ws.url));
   ws.avatarOptions = String(getAvatarFromSocketURL(ws.url));
+  // TODO: Somewhere in here, as part of broadcasting to each client, I would need to wire up the DB call to query message data pertinent to the newly connected user
   broadcastToClientsNewConnectedClientList(wss, ws, "CONNECT");
   ws.on("message", data => {
     const messageArrivalTime = moment().format("h:mm:ss:SSS a");
@@ -112,6 +116,8 @@ wss.on("connection", (ws: ICustomWebSocket, req) => {
       recipient: recipientSocket.username
     });
 
+    // TODO: Somewhere in here I would need to wire up the DB call to write data
+    // send the message back to the author as well
     ws.send(
       JSON.stringify({
         ...incomingData,
