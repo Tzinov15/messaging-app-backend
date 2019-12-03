@@ -161,7 +161,7 @@ wss.on("connection", (ws: ICustomWebSocket, req) => {
       });
       newMessage
         .save()
-        .then(result => console.log("Saved Message!" + result))
+        .then(result => result)
         .catch(err => {
           throw err;
         });
@@ -173,6 +173,18 @@ wss.on("connection", (ws: ICustomWebSocket, req) => {
         })
       );
       setTimeout(() => {
+        const newMessage = new MessageModel({
+          author: "SERVER",
+          recipient: incomingData.recipient,
+          msg: "Hi I'm the server!",
+          timestamp: messageArrivalTime
+        });
+        newMessage
+          .save()
+          .then(result => result)
+          .catch(err => {
+            throw err;
+          });
         ws.send(
           JSON.stringify({
             action: "USER_MESSAGE",
@@ -207,10 +219,9 @@ wss.on("connection", (ws: ICustomWebSocket, req) => {
         msg: incomingData.msg,
         timestamp: messageArrivalTime
       });
-      console.log("about to save db message");
       newMessage
         .save()
-        .then(result => console.log("Saved Message!" + result))
+        .then(result => result)
         .catch(err => {
           throw err;
         });
@@ -222,7 +233,6 @@ wss.on("connection", (ws: ICustomWebSocket, req) => {
         })
       );
 
-      console.log("SENDING TO " + recipientSocket);
       recipientSocket.send(messageData);
     }
   });
