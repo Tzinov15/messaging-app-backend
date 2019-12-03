@@ -108,23 +108,30 @@ const broadcastToClientsNewConnectedClientList = (
   //   `Currently connected clients: ${JSON.stringify(usersOfAllClients)}`
   // );
   (wss.clients as Set<ICustomWebSocket>).forEach(client => {
-    // TODO: Somewhere in here, as part of broadcasting to each client, I would need to wire up the DB call to query message data pertinent to the newly connected userA
-    // TODO: Also, not each client can get the same message here. When a client first connects, that client and that client only neeeds to get ITS message history
-    // All the other clients simply need to be notified that there is a new user. So in this case, in the wss.clients.forEach, we need to send a special action to the new client that joined the team and give them their message history
-    console.log("about to retrieve messages");
-    MessageModel.find({
-      $or: [{ author: client.username }, { recipient: client.username }]
-    })
-      .then(messages => console.log("found messages" + messages))
-      .catch(err => {
-        throw err;
-      });
-    client.send(
-      JSON.stringify({
-        action: `CLIENT_${updateType}`,
-        users: usersOfAllClients
+    if (client.username === ws.username) {
+      MessageModel.find({
+        $or: [{ author: client.username }, { recipient: client.username }]
       })
-    );
+        .then(messages => {
+          client.send(
+            JSON.stringify({
+              action: "CLIENT_NEW",
+              messages,
+              users: usersOfAllClients
+            })
+          );
+        })
+        .catch(err => {
+          throw err;
+        });
+    } else {
+      client.send(
+        JSON.stringify({
+          action: `CLIENT_${updateType}`,
+          users: usersOfAllClients
+        })
+      );
+    }
   });
 };
 
@@ -140,13 +147,24 @@ wss.on("connection", (ws: ICustomWebSocket, req) => {
   ws.url = String(req.url);
   ws.username = String(getUsernameFromSocketURL(ws.url));
   ws.avatarOptions = String(getAvatarFromSocketURL(ws.url));
-  // TODO: Somewhere in here, as part of broadcasting to each client, I would need to wire up the DB call to query message data pertinent to the newly connected user
   broadcastToClientsNewConnectedClientList(wss, ws, "CONNECT");
   ws.on("message", data => {
     const messageArrivalTime = moment().format("h:mm:ss:SSS a");
     const incomingData = JSON.parse(data.toString());
     // If the Client selected the server to 'talk' to, handle it a little differently
     if (incomingData.recipient === "SERVER") {
+      const newMessage = new MessageModel({
+        author: incomingData.author,
+        recipient: incomingData.recipient,
+        msg: incomingData.msg,
+        timestamp: messageArrivalTime
+      });
+      newMessage
+        .save()
+        .then(result => console.log("Saved Message!" + result))
+        .catch(err => {
+          throw err;
+        });
       ws.send(
         JSON.stringify({
           ...incomingData,
