@@ -6,6 +6,20 @@ import { toUnicode } from "punycode";
 import winston from "winston";
 import * as WebSocket from "ws";
 
+export const ServerAvatarOptions = {
+  avatarStyle: "Transparent",
+  topType: "Hat",
+  accessoriesType: "Round",
+  facialHairType: "BeardMagestic",
+  facialHairColor: "Black",
+  clotheType: "ShirtCrewNeck",
+  clotheColor: "Blue",
+  eyeType: "Side",
+  eyebrowType: "UnibrowNatural",
+  mouthType: "Serious",
+  skinColor: "Tanned"
+};
+
 export interface IMessageData {
   username: string;
   date: string;
@@ -67,6 +81,11 @@ const broadcastToClientsNewConnectedClientList = (
 ) => {
   logger.info(`The ${getUsernameFromSocketURL(ws.url)} has ${updateType}!`);
   const usersOfAllClients = reduceSocketsToUsers(wss.clients);
+  // Also push the server and their respective avatar as a possible "client" the user can talk to
+  usersOfAllClients.push({
+    avatar: JSON.stringify(ServerAvatarOptions),
+    username: "SERVER"
+  });
   // logger.info(
   //   `Currently connected clients: ${JSON.stringify(usersOfAllClients)}`
   // );
@@ -100,34 +119,55 @@ wss.on("connection", (ws: ICustomWebSocket, req) => {
   ws.on("message", data => {
     const messageArrivalTime = moment().format("h:mm:ss:SSS a");
     const incomingData = JSON.parse(data.toString());
-    const recipientSocket: ICustomWebSocket = findRecipientSocket(
-      Array.from(wss.clients as Set<ICustomWebSocket>),
-      incomingData.recipient
-    );
-    const decodedAvatarOptionsJSON = JSON.parse(
-      decodeURI(recipientSocket.avatarOptions)
-    );
-    const messageData = JSON.stringify({
-      action: "USER_MESSAGE",
-      author: incomingData.author,
-      avatarOptions: decodedAvatarOptionsJSON,
-      date: messageArrivalTime,
-      msg: incomingData.msg,
-      recipient: recipientSocket.username
-    });
-
-    // TODO: Somewhere in here I would need to wire up the DB call to write data
-    // send the message back to the author as well
-    ws.send(
-      JSON.stringify({
-        ...incomingData,
+    // If the Client selected the server to 'talk' to, handle it a little differently
+    if (incomingData.recipient === "SERVER") {
+      ws.send(
+        JSON.stringify({
+          ...incomingData,
+          action: "USER_MESSAGE",
+          date: messageArrivalTime
+        })
+      );
+      setTimeout(() => {
+        ws.send(
+          JSON.stringify({
+            action: "USER_MESSAGE",
+            author: "SERVER",
+            avatarOptions: JSON.stringify(ServerAvatarOptions),
+            date: messageArrivalTime,
+            msg: "Hi I'm the server!",
+            recipient: incomingData.author
+          })
+        );
+      }, 800);
+    } else {
+      const recipientSocket: ICustomWebSocket = findRecipientSocket(
+        Array.from(wss.clients as Set<ICustomWebSocket>),
+        incomingData.recipient
+      );
+      const decodedAvatarOptionsJSON = JSON.parse(
+        decodeURI(recipientSocket.avatarOptions)
+      );
+      const messageData = JSON.stringify({
         action: "USER_MESSAGE",
-        date: messageArrivalTime
-      })
-    );
+        author: incomingData.author,
+        avatarOptions: decodedAvatarOptionsJSON,
+        date: messageArrivalTime,
+        msg: incomingData.msg,
+        recipient: recipientSocket.username
+      }); // TODO: Somewhere in here I would need to wire up the DB call to write data
+      // send the message back to the author as well
+      ws.send(
+        JSON.stringify({
+          ...incomingData,
+          action: "USER_MESSAGE",
+          date: messageArrivalTime
+        })
+      );
 
-    console.log("SENDING TO " + recipientSocket);
-    recipientSocket.send(messageData);
+      console.log("SENDING TO " + recipientSocket);
+      recipientSocket.send(messageData);
+    }
   });
 
   ws.on("close", data => {
