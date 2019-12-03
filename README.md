@@ -40,6 +40,9 @@
 - Custom WebSocket attributes can be added (thought of this first)
   https://stackoverflow.com/a/46878342
 
+- MongoDB (native) vs. Mongoose (Object Mapper)
+  https://stackoverflow.com/questions/28712248/difference-between-mongodb-and-mongoose
+
 
     ## Considerations
     WebSocket vs. Socket.IO

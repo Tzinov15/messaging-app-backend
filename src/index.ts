@@ -1,10 +1,14 @@
 import dotenv from "dotenv";
 import express from "express";
 import moment from "moment";
+import { Db, MongoClient } from "mongodb";
 import morgan from "morgan";
 import { toUnicode } from "punycode";
 import winston from "winston";
 import * as WebSocket from "ws";
+
+dotenv.config();
+const MONGODB_CONNECTION_STRING = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}${process.env.MONGO_PATH}`;
 
 export const ServerAvatarOptions = {
   avatarStyle: "Transparent",
@@ -33,6 +37,39 @@ export interface ICustomWebSocket extends WebSocket {
   username: string;
 }
 
+const client = new MongoClient(MONGODB_CONNECTION_STRING);
+client.connect(err => {
+  if (err) {
+    console.log("err");
+    console.log(err);
+  } else {
+    const collection = client
+      .db("messaging-app-backend")
+      .collection("messages");
+
+    collection.insertOne(
+      {
+        author: "emma",
+        recipient: "sad cactus leaf",
+        msg: "hello world"
+      },
+      (err, res) => {
+        if (err) {
+          throw err;
+        }
+        console.log("document isnerted");
+      }
+    );
+
+    collection.find({}).toArray((err, result) => {
+      console.log("result");
+      console.log(result);
+    });
+    // perform actions on the collection objec
+    client.close();
+  }
+});
+
 const app = express();
 const logger = winston.createLogger({
   transports: [
@@ -41,7 +78,6 @@ const logger = winston.createLogger({
   ]
 });
 
-dotenv.config();
 const port = process.env.SERVER_PORT;
 
 app.use(morgan("dev"));
