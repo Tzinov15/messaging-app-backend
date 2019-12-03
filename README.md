@@ -42,6 +42,11 @@
 
 - MongoDB (native) vs. Mongoose (Object Mapper)
   https://stackoverflow.com/questions/28712248/difference-between-mongodb-and-mongoose
+  https://medium.com/chingu/an-overview-of-mongodb-mongoose-b980858a8994
+
+  Re-using MongoDB connection
+  https://stackoverflow.com/questions/24621940/how-to-properly-reuse-connection-to-mongodb-across-nodejs-application-and-module
+  https://itnext.io/how-to-share-a-single-database-connection-in-a-node-js-express-js-app-fcad4cbcb1e
 
 
     ## Considerations
