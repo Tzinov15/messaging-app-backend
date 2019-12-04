@@ -1,3 +1,9 @@
+/*
+TODO: Handle failed connections to the database, perhaps allow the app to still work but just notify the user that we won't be persisting messages
+
+
+
+*/
 import dotenv from "dotenv";
 import express from "express";
 import moment from "moment";
@@ -7,7 +13,8 @@ import winston from "winston";
 import * as WebSocket from "ws";
 
 dotenv.config();
-const MONGODB_CONNECTION_STRING = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}${process.env.MONGO_PATH}`;
+const MONGODB_CONNECTION_STRING = `mongodb://localhost:27017/messaging-app-backend`;
+// const MONGODB_CONNECTION_STRING = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}${process.env.MONGO_PATH}`;
 
 mongoose
   .connect(MONGODB_CONNECTION_STRING)
@@ -41,7 +48,7 @@ export const ServerAvatarOptions = {
 
 export interface IMessageData {
   username: string;
-  date: string;
+  timestamp: string;
   msg: string;
   avatarOptions: string;
 }
@@ -169,7 +176,7 @@ wss.on("connection", (ws: ICustomWebSocket, req) => {
         JSON.stringify({
           ...incomingData,
           action: "USER_MESSAGE",
-          date: messageArrivalTime
+          timestamp: messageArrivalTime
         })
       );
       setTimeout(() => {
@@ -190,7 +197,7 @@ wss.on("connection", (ws: ICustomWebSocket, req) => {
             action: "USER_MESSAGE",
             author: "SERVER",
             avatarOptions: JSON.stringify(ServerAvatarOptions),
-            date: messageArrivalTime,
+            timestamp: messageArrivalTime,
             msg: "Hi I'm the server!",
             recipient: incomingData.author
           })
@@ -208,7 +215,7 @@ wss.on("connection", (ws: ICustomWebSocket, req) => {
         action: "USER_MESSAGE",
         author: incomingData.author,
         avatarOptions: decodedAvatarOptionsJSON,
-        date: messageArrivalTime,
+        timestamp: messageArrivalTime,
         msg: incomingData.msg,
         recipient: recipientSocket.username
       }); // TODO: Somewhere in here I would need to wire up the DB call to write data
@@ -229,7 +236,7 @@ wss.on("connection", (ws: ICustomWebSocket, req) => {
         JSON.stringify({
           ...incomingData,
           action: "USER_MESSAGE",
-          date: messageArrivalTime
+          timestamp: messageArrivalTime
         })
       );
 
