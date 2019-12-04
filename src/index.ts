@@ -110,9 +110,7 @@ const wss = new WebSocket.Server({ server });
 // TODO: Write suites of unit tests for the below 3 functions to make sure they handle all possible edge cases of inputs
 const getUsernameFromSocketURL = (url: string) => url.split("username=")[1].split("&avatarOptions=")[0];
 const getAvatarFromSocketURL = (url: string) => {
-  console.log("getAvatarFromSocketURL");
   const avatarOptionsString = decodeURI(url.split("avatarOptions=")[1]);
-  console.log(JSON.parse(avatarOptionsString));
   return JSON.parse(avatarOptionsString);
 };
 const reduceSocketsToUsers = (sockets: Set<any>) =>
@@ -171,11 +169,14 @@ const findRecipientSocket = (clients: ICustomWebSocket[], recipient: string): IC
 wss.on("connection", (ws: ICustomWebSocket, req) => {
   ws.url = String(req.url);
   ws.username = String(getUsernameFromSocketURL(ws.url));
-  console.log("ws.url");
-  console.log(ws.url);
   ws.avatarOptions = getAvatarFromSocketURL(ws.url);
   broadcastToClientsNewConnectedClientList(wss, ws, "CONNECT");
   ws.on("message", data => {
+    if (JSON.parse(data.toString()).action === "PING") {
+      logger.info("Sending PONG message back to client: " + ws.username);
+      ws.send(JSON.stringify({ action: "PONG" }));
+      return;
+    }
     const serverEcho = () => {
       const outgoingServerMessage: IOutgoingMessageData = {
         author: "SERVER",
