@@ -72,7 +72,7 @@ export interface ICustomWebSocket extends WebSocket {
 
 const app = express();
 
-const port = process.env.SERVER_PORT;
+const port = process.env.PORT || 80;
 
 app.use(morgan("dev"));
 
