@@ -48,6 +48,10 @@
   https://stackoverflow.com/questions/24621940/how-to-properly-reuse-connection-to-mongodb-across-nodejs-application-and-module
   https://itnext.io/how-to-share-a-single-database-connection-in-a-node-js-express-js-app-fcad4cbcb1e
 
+  - Inescure websocket
+    An insecure WebSocket connection may not be initiated from a page loaded over HTTPS.
+    https://stackoverflow.com/questions/28625351/uncaught-securityerror-failed-to-construct-websocket-an-insecure-websocket-c
+
 
     ## Considerations
     WebSocket vs. Socket.IO
