@@ -13,8 +13,8 @@ import winston from "winston";
 import * as WebSocket from "ws";
 
 dotenv.config();
-const MONGODB_CONNECTION_STRING = `mongodb://localhost:27017/messaging-app-backend`;
-// const MONGODB_CONNECTION_STRING = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}${process.env.MONGO_PATH}`;
+// const MONGODB_CONNECTION_STRING = `mongodb://localhost:27017/messaging-app-backend`;
+const MONGODB_CONNECTION_STRING = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}${process.env.MONGO_PATH}`;
 
 mongoose
   .connect(MONGODB_CONNECTION_STRING)
@@ -182,7 +182,7 @@ wss.on("connection", (ws: ICustomWebSocket, req) => {
       setTimeout(() => {
         const newMessage = new MessageModel({
           author: "SERVER",
-          recipient: incomingData.recipient,
+          recipient: incomingData.author,
           msg: "Hi I'm the server!",
           timestamp: messageArrivalTime
         });
