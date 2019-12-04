@@ -5,6 +5,8 @@
   "rules": {
     "trailing-comma": [false],
     "arrow-parens": false,
+    "no-shadowed-variable": false,
+    "object-literal-sort-keys": false,
     "no-console": false
   },
   "rulesDirectory": []

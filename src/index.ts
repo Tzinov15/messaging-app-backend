@@ -12,13 +12,23 @@ import morgan from "morgan";
 import winston from "winston";
 import * as WebSocket from "ws";
 
+const logger = winston.createLogger({
+  transports: [
+    new winston.transports.Console(),
+    new winston.transports.File({ filename: "server.log" })
+  ]
+});
+
 dotenv.config();
 // const MONGODB_CONNECTION_STRING = `mongodb://localhost:27017/messaging-app-backend`;
 const MONGODB_CONNECTION_STRING = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}${process.env.MONGO_PATH}`;
 
 mongoose
-  .connect(MONGODB_CONNECTION_STRING)
-  .then(result => console.log("connected"))
+  .connect(MONGODB_CONNECTION_STRING, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+  })
+  .then(result => logger.info("MONGO DB SUCCESSFULLY CONNECTED"))
   .catch(err => {
     throw err;
   });
@@ -33,17 +43,17 @@ const MessageSchema = new mongoose.Schema({
 const MessageModel = mongoose.model("message", MessageSchema);
 
 export const ServerAvatarOptions = {
-  avatarStyle: "Transparent",
-  topType: "Hat",
   accessoriesType: "Round",
-  facialHairType: "BeardMagestic",
-  facialHairColor: "Black",
-  clotheType: "ShirtCrewNeck",
+  avatarStyle: "Transparent",
   clotheColor: "Blue",
+  clotheType: "ShirtCrewNeck",
   eyeType: "Side",
   eyebrowType: "UnibrowNatural",
+  facialHairColor: "Black",
+  facialHairType: "BeardMagestic",
   mouthType: "Serious",
-  skinColor: "Tanned"
+  skinColor: "Tanned",
+  topType: "Hat"
 };
 
 export interface IMessageData {
@@ -60,12 +70,6 @@ export interface ICustomWebSocket extends WebSocket {
 }
 
 const app = express();
-const logger = winston.createLogger({
-  transports: [
-    new winston.transports.Console(),
-    new winston.transports.File({ filename: "server.log" })
-  ]
-});
 
 const port = process.env.SERVER_PORT;
 
@@ -73,10 +77,14 @@ app.use(morgan("dev"));
 
 // define a route handler for the default home page
 app.get("/", (req, res) => {
+  logger.info("Currently connected clients: ");
   wss.clients.forEach(client => {
-    console.log(client.url); // ie: /?username=jijnov
+    logger.info(client.url); // ie: /?username=jijnov
   });
-  res.send("Hello world!");
+  res.send(
+    "Hello world! Here are some clients: " +
+      JSON.stringify(wss.clients, null, 2)
+  );
 });
 
 // start the Express server
@@ -120,6 +128,7 @@ const broadcastToClientsNewConnectedClientList = (
         $or: [{ author: client.username }, { recipient: client.username }]
       })
         .then(messages => {
+          logger.info("Sending messaage to: " + client.username);
           client.send(
             JSON.stringify({
               action: "CLIENT_NEW",
