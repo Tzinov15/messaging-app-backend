@@ -30,6 +30,7 @@ mongoose
   })
   .then(result => logger.info("MONGO DB SUCCESSFULLY CONNECTED"))
   .catch(err => {
+    logger.error("!!! Failed to connect to DB !!!");
     throw err;
   });
 
@@ -88,7 +89,7 @@ app.get("/", (req, res) => {
 });
 
 // start the Express server
-const server = app.listen(9191, "0.0.0.0", () => {
+const server = app.listen(Number(port), "0.0.0.0", () => {
   logger.info(`server started at http://localhost:${port}`);
 });
 
