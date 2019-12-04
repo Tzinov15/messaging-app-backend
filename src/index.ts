@@ -1,9 +1,7 @@
-/*
-TODO: Handle failed connections to the database, perhaps allow the app to still work but just notify the user that we won't be persisting messages
-
-
-
-*/
+// TODO:
+// Separate helper functions into separate file
+// Separate interface declarations into seperate file
+// Separate DB / Mongoose setup into separate file
 import dotenv from "dotenv";
 import express from "express";
 import moment from "moment";
@@ -18,7 +16,6 @@ const logger = winston.createLogger({
 });
 
 dotenv.config();
-// const MONGODB_CONNECTION_STRING = `mongodb://localhost:27017/messaging-app-backend`;
 const MONGODB_CONNECTION_STRING = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}${process.env.MONGO_PATH}`;
 
 mongoose
