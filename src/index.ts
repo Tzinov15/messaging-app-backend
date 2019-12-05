@@ -39,6 +39,10 @@ const MessageSchema = new mongoose.Schema<IMongooseMessageData>({
 
 const MessageModel = mongoose.model<IMongooseMessageData>("message", MessageSchema);
 
+export interface IClientUser {
+  username: string;
+  avatar: AvatarProps;
+}
 // Shape of the data that a client sends in to the server
 // See IOutgoingMessageData on the UI
 export interface IIncomingMessageData {
@@ -50,13 +54,14 @@ export interface IIncomingMessageData {
 
 export interface IOutgoingNewClientData {
   messages: IMongooseMessageData[];
-  users: string[];
+  users: IClientUser[];
   action: "CLIENT_NEW";
 }
 
 export interface IOutgoingConnectedClientData {
-  users: string[];
+  users: IClientUser[];
   action: "CLIENT_CONNECT" | "CLIENT_DISCONNECT";
+  updatedClient: string;
 }
 
 export interface IOutgoingMessageData {
@@ -110,7 +115,7 @@ const getAvatarFromSocketURL = (url: string) => {
   const avatarOptionsString = decodeURI(url.split("avatarOptions=")[1]);
   return JSON.parse(avatarOptionsString);
 };
-const reduceSocketsToUsers = (sockets: Set<any>) =>
+const reduceSocketsToUsers = (sockets: Set<any>): IClientUser[] =>
   Array.from(sockets).reduce((arr, currSocket) => {
     arr.push({
       avatar: getAvatarFromSocketURL(currSocket.url),
@@ -151,7 +156,8 @@ const broadcastToClientsNewConnectedClientList = (
     } else {
       const outgoingConnectedClientMessage: IOutgoingConnectedClientData = {
         users: usersOfAllClients,
-        action: `CLIENT_${updateType}` as "CLIENT_CONNECT" | "CLIENT_DISCONNECT"
+        action: `CLIENT_${updateType}` as "CLIENT_CONNECT" | "CLIENT_DISCONNECT",
+        updatedClient: ws.username
       };
       client.send(JSON.stringify(outgoingConnectedClientMessage));
     }
