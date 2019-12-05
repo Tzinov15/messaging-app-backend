@@ -2,6 +2,7 @@
 
 ## Things Learned
 
+- `git commit --allow-empty``
 - `tsc --init` will setup a default `tsconfig.json` file that has all the possible options included with comments next to each one describing what they do. Great way to learn about how tsconfig.json really works
 - Prestart/prebuild scripts in `package.json` allowing something like this where you run one command but under the hood it does 4
 
