@@ -204,7 +204,7 @@ wss.on("connection", (ws: ICustomWebSocket, req) => {
       }, 800);
     };
 
-    const messageArrivalTime = moment().format("h:mm:ss:SSS a");
+    const messageArrivalTime = moment().toString();
 
     const incomingData: IIncomingMessageData = JSON.parse(data.toString());
     const { author, recipient, msg, avatarOptions } = incomingData;
