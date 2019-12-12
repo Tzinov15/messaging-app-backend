@@ -175,11 +175,21 @@ wss.on("connection", (ws: ICustomWebSocket, req) => {
   ws.avatarOptions = getAvatarFromSocketURL(ws.url);
   broadcastToClientsNewConnectedClientList(wss, ws, "CONNECT");
   ws.on("message", data => {
+    const messageData = JSON.parse(data.toString());
     if (JSON.parse(data.toString()).action === "PING") {
       logger.info("Sending PONG message back to client: " + ws.username);
       ws.send(JSON.stringify({ action: "PONG" }));
       return;
     }
+    if (messageData.action === "ACTIVELY_TYPING" || messageData.action === "NOT_ACTIVELY_TYPING") {
+      const recipientSocket: ICustomWebSocket = findRecipientSocket(
+        Array.from(wss.clients as Set<ICustomWebSocket>),
+        messageData.recipient
+      );
+      recipientSocket.send(data);
+      return;
+    }
+
     const serverEcho = () => {
       const outgoingServerMessage: IOutgoingMessageData = {
         author: "SERVER",
