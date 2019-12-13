@@ -181,7 +181,10 @@ wss.on("connection", (ws: ICustomWebSocket, req) => {
       ws.send(JSON.stringify({ action: "PONG" }));
       return;
     }
-    if (messageData.action === "ACTIVELY_TYPING" || messageData.action === "NOT_ACTIVELY_TYPING") {
+    if (
+      (messageData.action === "ACTIVELY_TYPING" || messageData.action === "NOT_ACTIVELY_TYPING") &&
+      messageData.recipient !== "SERVER"
+    ) {
       const recipientSocket: ICustomWebSocket = findRecipientSocket(
         Array.from(wss.clients as Set<ICustomWebSocket>),
         messageData.recipient
