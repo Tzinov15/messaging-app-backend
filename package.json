@@ -21,7 +21,7 @@
     "tslint-config-prettier": "^1.18.0",
     "typescript": "^3.7.2",
     "winston": "^3.2.1",
-    "ws": "^7.2.0"
+    "ws": "^7.4.6"
   },
   "scripts": {
     "prebuild": "tslint -c tslint.json -p tsconfig.json --fix",
